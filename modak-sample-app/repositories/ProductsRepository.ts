@@ -9,9 +9,9 @@ export class ProductRepository {
     return data.products.map(this.productsModel);
   }
 
-  async getProductsByCategory(cat: string): Promise<Product[]> {
+  async getProductsByCategory(category: string): Promise<Product[]> {
     const { data } = await baseUrlClient.get<{ products: ProductDetails[] }>(
-      `/products/category/${encodeURIComponent(cat)}`
+      `/products/category/${encodeURIComponent(category)}`
     );
     return data.products.map(this.productsModel);
   }
@@ -34,6 +34,7 @@ export class ProductRepository {
       category: details.category,
       thumbnailUrl: details.thumbnail,
       imageUrls: details.images,
+      tags: details.tags,
     };
   }
 }

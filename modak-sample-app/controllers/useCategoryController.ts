@@ -1,5 +1,5 @@
 // src/controllers/CategoryController.ts
-import * as CategoryActions from "@/app/actions/CategoryAction";
+import * as CategoryActions from "@/actions/CategoryAction";
 import { Category } from "@/interfaces/categoryInterface";
 
 export async function fetchCategoryList(): Promise<{
