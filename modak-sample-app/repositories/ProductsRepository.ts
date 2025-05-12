@@ -34,6 +34,7 @@ export class ProductRepository {
       category: details.category,
       thumbnailUrl: details.thumbnail,
       imageUrls: details.images,
+      tags: details.tags,
     };
   }
 }

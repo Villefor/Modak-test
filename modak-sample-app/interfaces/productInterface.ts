@@ -10,6 +10,7 @@ export interface Product {
   category: string;
   thumbnailUrl: string;
   imageUrls: string[];
+  tags: string[];
 }
 
 export interface ProductDetails {
@@ -24,4 +25,5 @@ export interface ProductDetails {
   category: string;
   thumbnail: string;
   images: string[];
+  tags: string[];
 }
