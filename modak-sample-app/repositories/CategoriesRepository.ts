@@ -1,5 +1,5 @@
 import { Category } from "../interfaces/categoryInterface";
-import baseUrlClient from "../repositories/baseUrl";
+import baseUrlClient from "./baseUrl";
 
 export class CategoryRepository {
   async getAllCategories(): Promise<Category[]> {

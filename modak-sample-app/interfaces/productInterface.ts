@@ -25,5 +25,3 @@ export interface ProductDetails {
   thumbnail: string;
   images: string[];
 }
-
-export type Category = string;
