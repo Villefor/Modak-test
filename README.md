@@ -29,15 +29,8 @@ A React Native application that fetches product data from a dummy API, displays 
 
 ## 🐞 To Do
 
-
-Unit & Integration Tests
-
-TODO: Add unit tests with Jest and React Native Testing Library.
-
-TODO: Create integration tests for components and hooks.
-
-End-to-End Tests
-
-TODO: Integrate Detox for e2e testing on both iOS and Android.
+1. Add unit tests with Jest and React Native Testing Library.
+2. Create integration tests for components and hooks.
+3. Integrate Detox for e2e testing on both iOS and Android.
 
 
