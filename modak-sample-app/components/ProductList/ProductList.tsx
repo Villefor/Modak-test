@@ -156,7 +156,6 @@ export function ProductList({
         </View>
       </View>
 
-      {/* === Lista ou Erro === */}
       {error ? (
         <View style={styles.errorContainer}>
           <ProductErrorCard message={error.message} onRetry={onEndReached} />

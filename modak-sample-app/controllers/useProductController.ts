@@ -1,7 +1,9 @@
 import * as ProductAction from "@/actions/ProductAction";
 import { Product } from "@/interfaces/productInterface";
+import * as Calendar from "expo-calendar";
+import * as Linking from "expo-linking";
 import { useCallback, useEffect, useState } from "react";
-import { Share } from "react-native";
+import { Alert, Share } from "react-native";
 
 const PAGE_SIZE = 10;
 
@@ -124,17 +126,56 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
 
   const handleShare = async (product: Product) => {
     try {
-      await Share.share({
-        message:
-          `That product looks perfect for you!\n\n` +
-          `🎁 ${product.title}\n` +
-          `💵 Price: USD ${product.price.toFixed(2)}\n` +
-          `⭐ Rating: ${product.rating}\n` +
-          `${product.imageUrls[0]}`,
-        url: product.imageUrls[0],
+      const deepLink = Linking.createURL(`product/${product.id}`, {
+        scheme: "modaksampleapp",
       });
+
+      const message =
+        `That product looks perfect for you!\n\n` +
+        `🎁 ${product.title}\n` +
+        `💵 Price: USD ${product.price.toFixed(2)}\n` +
+        `⭐ Rating: ${product.rating}\n\n` +
+        `Open it here: ${deepLink}`;
+
+      await Share.share({ message, url: deepLink });
     } catch (err) {
       console.error("Share error:", err);
+    }
+  };
+
+  const handleAddToCalendar = async (product: Product) => {
+    try {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("User denied calendar permissions");
+        return;
+      }
+
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT
+      );
+      const defaultCal = calendars.find((c) => c.allowsModifications);
+      if (!defaultCal) {
+        Alert.alert("No calendar found");
+        return;
+      }
+
+      const startDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      startDate.setHours(9, 0, 0, 0);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+
+      await Calendar.createEventAsync(defaultCal.id, {
+        title: "Next item for shopping list",
+        notes: `${product.title} — USD ${product.price.toFixed(2)}`,
+        startDate,
+        endDate,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+
+      Alert.alert("Evento adicionado ao calendário");
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Erro ao criar evento");
     }
   };
 
@@ -155,6 +196,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     selectProduct,
     handleCategorySelect,
     handleShare,
+    handleAddToCalendar,
     dismissModal,
   };
 }

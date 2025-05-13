@@ -19,6 +19,7 @@ export default function HomeScreen() {
     selectProduct,
     handleCategorySelect,
     handleShare,
+    handleAddToCalendar,
     dismissModal,
   } = useProductController({
     // se quiser filtrar/ordenar desde o início, passe aqui:
@@ -51,6 +52,7 @@ export default function HomeScreen() {
         product={selected}
         onDismiss={dismissModal}
         handleShare={handleShare}
+        handleAddToCalendar={handleAddToCalendar}
       />
 
       <CategorySelectorModal

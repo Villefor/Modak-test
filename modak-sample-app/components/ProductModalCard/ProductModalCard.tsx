@@ -3,7 +3,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
-  Avatar,
   Button,
   Card,
   Chip,
@@ -18,6 +17,7 @@ type ProductModalProps = {
   product: Product | null;
   onDismiss: () => void;
   handleShare: (product: Product) => Promise<void>;
+  handleAddToCalendar: (product: Product) => Promise<void>;
 };
 
 export function ProductModal({
@@ -25,6 +25,7 @@ export function ProductModal({
   product,
   onDismiss,
   handleShare,
+  handleAddToCalendar,
 }: ProductModalProps) {
   if (!product) return null;
 
@@ -39,7 +40,16 @@ export function ProductModal({
           <Card.Title
             title={product.title}
             subtitle={product.brand}
-            left={(props) => <Avatar.Icon {...props} icon="heart" />}
+            left={(props) => (
+              <IconButton
+                {...props}
+                icon="shopping"
+                onPress={() => handleAddToCalendar(product)}
+                iconColor="#fff"
+                size={24}
+                containerColor="rgb(25, 145, 133)"
+              />
+            )}
             right={(props) => (
               <IconButton
                 {...props}
