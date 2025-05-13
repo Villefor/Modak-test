@@ -3,6 +3,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -10,6 +11,16 @@ import {
   Provider as PaperProvider,
 } from "react-native-paper";
 import "react-native-reanimated";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -32,7 +43,6 @@ export default function RootLayout() {
       <PaperProvider theme={paperTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
       </PaperProvider>

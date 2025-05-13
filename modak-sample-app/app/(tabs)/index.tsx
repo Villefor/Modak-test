@@ -13,6 +13,9 @@ export default function HomeScreen() {
     error,
     query,
     setQuery,
+    sortedProducts,
+    sort,
+    setSort,
     loadMore,
     selected,
     modalVisible,
@@ -21,12 +24,7 @@ export default function HomeScreen() {
     handleShare,
     handleAddToCalendar,
     dismissModal,
-  } = useProductController({
-    // se quiser filtrar/ordenar desde o início, passe aqui:
-    // category: 'electronics',
-    // sortBy: 'price',
-    // order: 'asc',
-  });
+  } = useProductController({});
 
   const {
     categories,
@@ -40,7 +38,10 @@ export default function HomeScreen() {
       <ProductList
         error={error}
         query={query}
-        onChangeQuery={setQuery}
+        setQuery={setQuery}
+        sortedProducts={sortedProducts}
+        sort={sort}
+        setSort={setSort}
         products={products}
         loading={loading}
         onEndReached={loadMore}

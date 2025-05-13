@@ -1,1 +1,5 @@
-export type Category = string;
+export interface Category {
+  slug: string;
+  name: string;
+  url: string;
+}

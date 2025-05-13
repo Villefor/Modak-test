@@ -70,8 +70,12 @@ export function ProductModal({
           <Card.Content style={styles.cardContent}>
             {product.tags?.length > 0 && (
               <View style={styles.tagsContainer}>
-                {product.tags.map((tag) => (
-                  <Chip key={tag} icon="label" style={styles.tagChip}>
+                {product.tags.map((tag, idx) => (
+                  <Chip
+                    key={`${tag}-${idx}`}
+                    icon="label"
+                    style={styles.tagChip}
+                  >
                     {tag}
                   </Chip>
                 ))}

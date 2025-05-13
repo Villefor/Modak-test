@@ -2,7 +2,8 @@ import * as ProductAction from "@/actions/ProductAction";
 import { Product } from "@/interfaces/productInterface";
 import * as Calendar from "expo-calendar";
 import * as Linking from "expo-linking";
-import { useCallback, useEffect, useState } from "react";
+import * as Notifications from "expo-notifications";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Share } from "react-native";
 
 const PAGE_SIZE = 10;
@@ -13,6 +14,8 @@ export interface UseProductControllerOptions {
   order?: "asc" | "desc";
 }
 
+export type SortOption = "priceAsc" | "priceDesc" | "titleAsc";
+
 export function useProductController(opts: UseProductControllerOptions = {}) {
   const [query, setQuery] = useState<string>("");
   const [page, setPage] = useState<number>(0);
@@ -22,14 +25,26 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
   const [selected, setSelected] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [sort, setSort] = useState<SortOption>("priceAsc");
 
-  async function fetchProductList(params: {
+  async function fetchProductList(parameters: {
     category?: string;
     sortBy?: "price" | "rating";
     order?: "asc" | "desc";
   }): Promise<{ data: Product[] | null; error: Error | null }> {
     try {
-      const data = await ProductAction.listProducts(params);
+      const data = await ProductAction.listProducts(parameters);
+      return { data, error: null };
+    } catch (error: any) {
+      return { data: null, error };
+    }
+  }
+
+  async function fetchSearchList(
+    query: string
+  ): Promise<{ data: Product[] | null; error: Error | null }> {
+    try {
+      const data = await ProductAction.searchProducts(query);
       return { data, error: null };
     } catch (error: any) {
       return { data: null, error };
@@ -52,30 +67,17 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     setError(null);
     setPage(0);
 
-    try {
-      const { data, error: fetchError } = await fetchProductList({
-        ...opts,
-      });
-      if (fetchError || !data) {
-        throw fetchError ?? new Error("Resposta vazia");
-      }
+    const result = query.trim()
+      ? await fetchSearchList(query.trim())
+      : await fetchProductList({ ...opts });
 
-      const filtered = data.filter((p) =>
-        p.title.toLowerCase().includes(query.trim().toLowerCase())
-      );
-
-      setFullList(filtered);
-      setProducts(filtered.slice(0, PAGE_SIZE));
-    } catch (err: any) {
-      setError(err);
-    } finally {
-      setLoading(false);
+    if (result.error || !result.data) {
+      throw result.error ?? new Error("Resposta vazia");
     }
-  }, [opts.category, opts.sortBy, opts.order, query]);
 
-  useEffect(() => {
-    reloadList();
-  }, [reloadList]);
+    setFullList(result.data);
+    setProducts(result.data.slice(0, PAGE_SIZE));
+  }, [opts.category, opts.sortBy, opts.order, query]);
 
   const loadMore = useCallback(() => {
     if (loading) return;
@@ -133,7 +135,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       const message =
         `That product looks perfect for you!\n\n` +
         `🎁 ${product.title}\n` +
-        `💵 Price: USD ${product.price.toFixed(2)}\n` +
+        `💵 Price: USD ${product.price}\n` +
         `⭐ Rating: ${product.rating}\n\n` +
         `Open it here: ${deepLink}`;
 
@@ -142,6 +144,33 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       console.error("Share error:", err);
     }
   };
+
+  async function scheduleNotification(product: Product, date: Date) {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão de notificações negada");
+      return;
+    }
+
+    const nowMs = Date.now();
+    const dateMs = date.getTime();
+    const secondsUntil = Math.max(Math.floor((dateMs - nowMs) / 1000), 1);
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🛒 Shopping Reminder",
+        body: `Time to buy ${product.title} for USD ${product.price.toFixed(
+          2
+        )}`,
+        data: { productId: product.id },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: secondsUntil,
+        repeats: false,
+      },
+    });
+  }
 
   const handleAddToCalendar = async (product: Product) => {
     try {
@@ -154,8 +183,8 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       const calendars = await Calendar.getCalendarsAsync(
         Calendar.EntityTypes.EVENT
       );
-      const defaultCal = calendars.find((c) => c.allowsModifications);
-      if (!defaultCal) {
+      const defaultCalendar = calendars.find((c) => c.allowsModifications);
+      if (!defaultCalendar) {
         Alert.alert("No calendar found");
         return;
       }
@@ -164,7 +193,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       startDate.setHours(9, 0, 0, 0);
       const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
 
-      await Calendar.createEventAsync(defaultCal.id, {
+      await Calendar.createEventAsync(defaultCalendar.id, {
         title: "Next item for shopping list",
         notes: `${product.title} — USD ${product.price.toFixed(2)}`,
         startDate,
@@ -172,17 +201,36 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      Alert.alert("Evento adicionado ao calendário");
+      await scheduleNotification(product, startDate);
+
+      Alert.alert("Your item was added to your calendar");
     } catch (err: any) {
       console.error(err);
-      Alert.alert("Erro ao criar evento");
+      Alert.alert("Failed to add to calendar");
     }
   };
+
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      switch (sort) {
+        case "priceAsc":
+          return a.price - b.price;
+        case "priceDesc":
+          return b.price - a.price;
+        case "titleAsc":
+          return a.title.localeCompare(b.title);
+      }
+    });
+  }, [products, sort]);
 
   const dismissModal = useCallback(() => {
     setModalVisible(false);
     setSelected(null);
   }, []);
+
+  useEffect(() => {
+    reloadList();
+  }, [reloadList]);
 
   return {
     products,
@@ -190,6 +238,9 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     error,
     query,
     setQuery,
+    sortedProducts,
+    sort,
+    setSort,
     loadMore,
     selected,
     modalVisible,
