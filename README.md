@@ -27,3 +27,17 @@ A React Native application that fetches product data from a dummy API, displays 
 3. Use expo to run it [https://docs.expo.dev/more/expo-cli/] or npx expo start
 4. Enjoy o/
 
+## 🐞 To Do
+
+
+Unit & Integration Tests
+
+TODO: Add unit tests with Jest and React Native Testing Library.
+
+TODO: Create integration tests for components and hooks.
+
+End-to-End Tests
+
+TODO: Integrate Detox for e2e testing on both iOS and Android.
+
+
