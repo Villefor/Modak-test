@@ -21,6 +21,14 @@ export class ProductRepository {
     return this.productsModel(data);
   }
 
+  async searchProducts(query: string): Promise<Product[]> {
+    const { data } = await baseUrlClient.get<{ products: ProductDetails[] }>(
+      "/products/search",
+      { params: { q: query } }
+    );
+    return data.products.map(this.productsModel);
+  }
+
   private productsModel(details: ProductDetails): Product {
     return {
       id: details.id,

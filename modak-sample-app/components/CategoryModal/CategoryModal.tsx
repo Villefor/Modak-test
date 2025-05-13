@@ -1,4 +1,4 @@
-import { Category } from "@/interfaces/categoryInterface";
+import { CategoryItem } from "@/controllers/useCategoryController";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
@@ -12,7 +12,7 @@ import {
 type CategorySelectorModalProps = {
   visible: boolean;
   categoryLoading: boolean;
-  categories: Category[];
+  categories: CategoryItem[];
   onDismiss: () => void;
   onSelect: (category: string) => void;
 };

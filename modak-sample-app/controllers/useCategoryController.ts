@@ -14,8 +14,13 @@ export async function fetchCategoryList(): Promise<{
   }
 }
 
+export type CategoryItem = {
+  id: string;
+  name: string;
+};
+
 export function useCategoryController() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [categoryLoading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -27,9 +32,15 @@ export function useCategoryController() {
     try {
       const { data, error: fetchError } = await fetchCategoryList();
       if (fetchError || !data) {
-        throw fetchError ?? new Error("Resposta vazia");
+        throw fetchError ?? new Error("Failed to fetch categories");
       }
-      setCategories(data);
+      const items: CategoryItem[] = data.map((category) => ({
+        id: category.slug,
+        name: category.name,
+        slug: category.slug,
+      }));
+
+      setCategories(items);
     } catch (err: any) {
       setError(err);
     } finally {

@@ -31,3 +31,7 @@ export async function listProducts(opts: ListOptions = {}): Promise<Product[]> {
 export async function getProductById(id: number): Promise<Product> {
   return api.getProductsById(id);
 }
+
+export async function searchProducts(query: string): Promise<Product[]> {
+  return api.searchProducts(query);
+}
