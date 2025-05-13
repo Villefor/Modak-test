@@ -1,6 +1,7 @@
+import { CategorySelectorModal } from "@/components/CategoryModal/CategoryModal";
 import { ProductList } from "@/components/ProductList/ProductList";
 import { ProductModal } from "@/components/ProductModalCard/ProductModalCard";
-import { ProductSearchBar } from "@/components/ui/SearchBar";
+import { useCategoryController } from "@/controllers/useCategoryController";
 import { useProductController } from "@/controllers/useProductController";
 import React from "react";
 import { View } from "react-native";
@@ -16,6 +17,8 @@ export default function HomeScreen() {
     selected,
     modalVisible,
     selectProduct,
+    handleCategorySelect,
+    handleShare,
     dismissModal,
   } = useProductController({
     // se quiser filtrar/ordenar desde o início, passe aqui:
@@ -24,19 +27,38 @@ export default function HomeScreen() {
     // order: 'asc',
   });
 
+  const {
+    categories,
+    categoryLoading,
+    categoryModalVisible,
+    setCategoryModalVisible,
+  } = useCategoryController();
+
   return (
     <View style={{ flex: 1 }}>
-      <ProductSearchBar query={query} onChangeQuery={setQuery} />
       <ProductList
+        error={error}
+        query={query}
+        onChangeQuery={setQuery}
         products={products}
         loading={loading}
         onEndReached={loadMore}
         onSelectProduct={selectProduct}
+        onOpenCategoryModal={() => setCategoryModalVisible(true)}
       />
       <ProductModal
         visible={modalVisible}
         product={selected}
         onDismiss={dismissModal}
+        handleShare={handleShare}
+      />
+
+      <CategorySelectorModal
+        visible={categoryModalVisible}
+        onDismiss={() => setCategoryModalVisible(false)}
+        onSelect={handleCategorySelect}
+        categoryLoading={categoryLoading}
+        categories={categories}
       />
     </View>
   );

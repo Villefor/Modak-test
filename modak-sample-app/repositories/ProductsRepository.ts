@@ -11,7 +11,7 @@ export class ProductRepository {
 
   async getProductsByCategory(category: string): Promise<Product[]> {
     const { data } = await baseUrlClient.get<{ products: ProductDetails[] }>(
-      `/products/category/${encodeURIComponent(category)}`
+      `/products/category/${category}`
     );
     return data.products.map(this.productsModel);
   }

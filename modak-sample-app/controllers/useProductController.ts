@@ -1,6 +1,7 @@
-import * as ProductActions from "@/actions/ProductAction";
+import * as ProductAction from "@/actions/ProductAction";
 import { Product } from "@/interfaces/productInterface";
 import { useCallback, useEffect, useState } from "react";
+import { Share } from "react-native";
 
 const PAGE_SIZE = 10;
 
@@ -26,7 +27,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     order?: "asc" | "desc";
   }): Promise<{ data: Product[] | null; error: Error | null }> {
     try {
-      const data = await ProductActions.listProducts(params);
+      const data = await ProductAction.listProducts(params);
       return { data, error: null };
     } catch (error: any) {
       return { data: null, error };
@@ -37,7 +38,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     id: number
   ): Promise<{ data: Product | null; error: Error | null }> {
     try {
-      const data = await ProductActions.getProductById(id);
+      const data = await ProductAction.getProductById(id);
       return { data, error: null };
     } catch (error: any) {
       return { data: null, error };
@@ -98,6 +99,45 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     }
   }, []);
 
+  const handleCategorySelect = useCallback(async (category: string) => {
+    setLoading(true);
+    setError(null);
+    setPage(0);
+
+    try {
+      const { data, error: fetchError } = await fetchProductList({ category });
+
+      if (fetchError || !data || data.length === 0) {
+        throw fetchError ?? new Error("Nenhum resultado encontrado");
+      }
+
+      setFullList(data);
+      setProducts(data.slice(0, PAGE_SIZE));
+    } catch (err: any) {
+      setError(err);
+      setFullList([]);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleShare = async (product: Product) => {
+    try {
+      await Share.share({
+        message:
+          `That product looks perfect for you!\n\n` +
+          `🎁 ${product.title}\n` +
+          `💵 Price: USD ${product.price.toFixed(2)}\n` +
+          `⭐ Rating: ${product.rating}\n` +
+          `${product.imageUrls[0]}`,
+        url: product.imageUrls[0],
+      });
+    } catch (err) {
+      console.error("Share error:", err);
+    }
+  };
+
   const dismissModal = useCallback(() => {
     setModalVisible(false);
     setSelected(null);
@@ -113,6 +153,8 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     selected,
     modalVisible,
     selectProduct,
+    handleCategorySelect,
+    handleShare,
     dismissModal,
   };
 }
