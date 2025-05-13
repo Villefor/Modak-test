@@ -1,5 +1,5 @@
 import { Product } from "@/interfaces/productInterface";
-import MaterialIcons from "@react-native-vector-icons/material-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   Chip,
+  IconButton,
   Modal,
   Portal,
   Text,
@@ -16,12 +17,14 @@ type ProductModalProps = {
   visible: boolean;
   product: Product | null;
   onDismiss: () => void;
+  handleShare: (product: Product) => Promise<void>;
 };
 
 export function ProductModal({
   visible,
   product,
   onDismiss,
+  handleShare,
 }: ProductModalProps) {
   if (!product) return null;
 
@@ -37,13 +40,25 @@ export function ProductModal({
             title={product.title}
             subtitle={product.brand}
             left={(props) => <Avatar.Icon {...props} icon="heart" />}
+            right={(props) => (
+              <IconButton
+                {...props}
+                icon="share-variant"
+                iconColor="#fff"
+                containerColor="rgb(25, 145, 133)"
+                size={24}
+                onPress={() => handleShare(product)}
+              />
+            )}
           />
+
           <Card.Cover
             source={{ uri: product.imageUrls[0] }}
             style={styles.cover}
           />
+
           <Card.Content style={styles.cardContent}>
-            {product.tags && product.tags.length > 0 && (
+            {product.tags?.length > 0 && (
               <View style={styles.tagsContainer}>
                 {product.tags.map((tag) => (
                   <Chip key={tag} icon="label" style={styles.tagChip}>
@@ -57,24 +72,33 @@ export function ProductModal({
 
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
-                <MaterialIcons name="inventory" size={20} />
+                <MaterialIcons name="inventory" size={20} color="#199185" />
                 <Text style={styles.infoText}>Stock: {product.stock}</Text>
               </View>
               <View style={styles.infoItem}>
-                <MaterialIcons name="star" size={20} />
+                <MaterialIcons name="star" size={20} color="#199185" />
                 <Text style={styles.infoText}>{product.rating}</Text>
               </View>
             </View>
 
             <View style={styles.priceRow}>
-              <MaterialIcons name="attach-money" size={20} />
+              <MaterialIcons name="attach-money" size={20} color="#199185" />
               <Text style={[styles.infoText, styles.priceText]}>
                 USD {product.price.toFixed(2)}
               </Text>
             </View>
           </Card.Content>
+
           <Card.Actions>
-            <Button onPress={onDismiss}>Close</Button>
+            <Button
+              mode="contained"
+              buttonColor="rgb(25, 145, 133)"
+              textColor="#fff"
+              onPress={onDismiss}
+              style={styles.closeButton}
+            >
+              Close
+            </Button>
           </Card.Actions>
         </Card>
       </Modal>
@@ -132,5 +156,8 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontWeight: "bold",
+  },
+  closeButton: {
+    marginLeft: "auto",
   },
 });
