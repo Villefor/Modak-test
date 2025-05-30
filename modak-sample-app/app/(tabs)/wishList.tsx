@@ -26,7 +26,6 @@ export default function WishList() {
       Toast.error("Something went wrong while loading items");
     } finally {
       setLoading(false);
-      Toast.info("List reloaded");
     }
   }, []);
 
@@ -38,6 +37,7 @@ export default function WishList() {
     setRefreshing(true);
     await loadItems();
     setRefreshing(false);
+    Toast.info("List reloaded");
   }, [loadItems]);
 
   const renderItem = ({ item }: { item: Product }) => (
