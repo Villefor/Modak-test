@@ -5,6 +5,7 @@ import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Share } from "react-native";
+import { Toast } from "toastify-react-native";
 
 const PAGE_SIZE = 10;
 
@@ -47,6 +48,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       const data = await ProductAction.searchProducts(query);
       return { data, error: null };
     } catch (error: any) {
+      Toast.error("Something went wrong while loading products");
       return { data: null, error };
     }
   }
@@ -58,6 +60,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       const data = await ProductAction.getProductById(id);
       return { data, error: null };
     } catch (error: any) {
+      Toast.error("Something went wrong while loading the product");
       return { data: null, error };
     }
   }
@@ -67,16 +70,25 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
     setError(null);
     setPage(0);
 
-    const result = query.trim()
-      ? await fetchSearchList(query.trim())
-      : await fetchProductList({ ...opts });
+    try {
+      const result = query.trim()
+        ? await fetchSearchList(query.trim())
+        : await fetchProductList({ ...opts });
 
-    if (result.error || !result.data) {
-      throw result.error ?? new Error("Resposta vazia");
+      if (result.error || !result.data) {
+        Toast.error("Something went wrong while loading products");
+        throw result.error ?? new Error("no results found");
+      }
+
+      setFullList(result.data);
+      setProducts(result.data.slice(0, PAGE_SIZE));
+    } catch (err) {
+      setFullList([]);
+      setProducts([]);
+      Toast.error("Something went wrong while loading products");
+    } finally {
+      setLoading(false);
     }
-
-    setFullList(result.data);
-    setProducts(result.data.slice(0, PAGE_SIZE));
   }, [opts.category, opts.sortBy, opts.order, query]);
 
   const loadMore = useCallback(() => {
@@ -112,7 +124,8 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       const { data, error: fetchError } = await fetchProductList({ category });
 
       if (fetchError || !data || data.length === 0) {
-        throw fetchError ?? new Error("Nenhum resultado encontrado");
+        Toast.error("no products found for this category");
+        throw fetchError ?? new Error("no products found for this category");
       }
 
       setFullList(data);
@@ -121,6 +134,7 @@ export function useProductController(opts: UseProductControllerOptions = {}) {
       setError(err);
       setFullList([]);
       setProducts([]);
+      Toast.error("Something went wrong while loading products");
     } finally {
       setLoading(false);
     }

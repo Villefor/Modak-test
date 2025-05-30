@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { Button, Card, IconButton, Text } from "react-native-paper";
+import { Toast } from "toastify-react-native";
 import { ProductErrorCard } from "../ProductErrorCard/ProductErrorCard";
 import { ProductSort } from "../SortButton/ProductSort";
 import { ProductSearchBar } from "../ui/SearchBar";
@@ -34,7 +35,6 @@ type ProductListProps = {
 
 const STORAGE_KEY = "savedItems";
 
-// Componente de botão de “heart” com animação
 function FavoriteButton({
   isFavorite,
   onPress,
@@ -58,6 +58,9 @@ function FavoriteButton({
       }),
     ]).start();
     onPress();
+    isFavorite
+      ? Toast.error("Item removed from favorites")
+      : Toast.success("Item added to favorites");
   };
 
   return (
@@ -88,7 +91,6 @@ export function ProductList({
   const [cardLoadingId, setCardLoadingId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<number[]>([]);
 
-  // 1) carrega do AsyncStorage o array de Product e extrai só os ids
   const loadSaved = useCallback(async () => {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
@@ -99,7 +101,8 @@ export function ProductList({
         setSavedIds([]);
       }
     } catch (err) {
-      console.error("Erro ao carregar favoritos:", err);
+      Toast.error("Error loading favorites");
+      console.error("Error loading favorites", err);
     }
   }, []);
 
@@ -107,7 +110,6 @@ export function ProductList({
     loadSaved();
   }, [loadSaved]);
 
-  // 2) adiciona/remove o Product completo no AsyncStorage
   const toggleSave = async (product: Product) => {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
@@ -121,7 +123,8 @@ export function ProductList({
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newSaved));
       setSavedIds(newSaved.map((p) => p.id));
     } catch (err) {
-      console.error("Erro ao atualizar favoritos:", err);
+      console.error("Error", err);
+      Toast.error("Something went wrong while addding to favorites");
     }
   };
 
@@ -174,6 +177,17 @@ export function ProductList({
     );
   };
 
+  const renderEmpty = () => {
+    if (!loading && !error && query.trim().length > 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text>No products found for {query}</Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   const keyExtractor = (item: Product) => item.id.toString();
   const Footer = () =>
     loading ? <ActivityIndicator style={styles.loader} /> : null;
@@ -210,6 +224,7 @@ export function ProductList({
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
           ListFooterComponent={Footer}
+          ListEmptyComponent={renderEmpty}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -264,6 +279,12 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32,
   },
   loader: { marginVertical: 16 },
 });
