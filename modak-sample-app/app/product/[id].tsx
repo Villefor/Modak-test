@@ -1,4 +1,3 @@
-// app/product/[id].tsx
 import { useProductController } from "@/controllers/useProductController";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";

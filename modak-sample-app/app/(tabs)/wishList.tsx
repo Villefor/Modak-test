@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, Text } from "react-native-paper";
+import { Toast } from "toastify-react-native";
 
 const STORAGE_KEY = "savedItems";
 
@@ -22,8 +23,10 @@ export default function WishList() {
       }
     } catch {
       setItems([]);
+      Toast.error("Something went wrong while loading items");
     } finally {
       setLoading(false);
+      Toast.info("List reloaded");
     }
   }, []);
 
@@ -38,7 +41,7 @@ export default function WishList() {
   }, [loadItems]);
 
   const renderItem = ({ item }: { item: Product }) => (
-    <View style={styles.cardContainer}>
+    <View style={styles.cardContainer} testID={`itemCard-${item.id}`}>
       <Card style={styles.card}>
         <Card.Cover source={{ uri: item.thumbnailUrl }} />
         <Card.Title
@@ -47,10 +50,12 @@ export default function WishList() {
         />
         <Card.Actions>
           <Button
+            testID={`removeButton-${item.id}`}
             onPress={async () => {
               const filtered = items.filter((p) => p.id !== item.id);
               setItems(filtered);
               await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+              Toast.success("Item removed");
             }}
           >
             Remove
@@ -63,17 +68,25 @@ export default function WishList() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator testID="loadingIndicator" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="wishListScreen">
       <View style={styles.header}>
-        <Text style={styles.title}>Wish List</Text>
+        <Text style={styles.title} testID="headerTitle">
+          Wish List
+        </Text>
         {items.length > 0 && (
-          <Button icon="reload" mode="outlined" onPress={loadItems} compact>
+          <Button
+            icon="reload"
+            mode="outlined"
+            onPress={loadItems}
+            compact
+            testID="reloadButton"
+          >
             Reload
           </Button>
         )}
@@ -86,6 +99,7 @@ export default function WishList() {
             mode="contained"
             onPress={loadItems}
             style={styles.reloadButton}
+            testID="reloadButtonEmpty"
           >
             Reload
           </Button>
@@ -97,7 +111,11 @@ export default function WishList() {
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              testID="pullToRefresh"
+            />
           }
         />
       )}

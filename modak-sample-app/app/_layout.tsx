@@ -11,6 +11,7 @@ import {
   Provider as PaperProvider,
 } from "react-native-paper";
 import "react-native-reanimated";
+import ToastManager from "toastify-react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -41,6 +42,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={navTheme}>
       <PaperProvider theme={paperTheme}>
+        <ToastManager />
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
