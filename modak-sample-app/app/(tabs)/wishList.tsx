@@ -1,44 +1,21 @@
+import { useWishListController } from "@/controllers/useWishListController";
 import { Product } from "@/interfaces/productInterface";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, Text } from "react-native-paper";
 import { Toast } from "toastify-react-native";
 
-const STORAGE_KEY = "savedItems";
-
 export default function WishList() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadItems = useCallback(async () => {
-    try {
-      setLoading(true);
-      const json = await AsyncStorage.getItem(STORAGE_KEY);
-      if (json) {
-        setItems(JSON.parse(json));
-      } else {
-        setItems([]);
-      }
-    } catch {
-      setItems([]);
-      Toast.error("Something went wrong while loading items");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadItems();
-    setRefreshing(false);
-    Toast.info("List reloaded");
-  }, [loadItems]);
+  const {
+    items,
+    loading,
+    refreshing,
+    storageKey,
+    onRefresh,
+    setItems,
+    loadItems,
+  } = useWishListController();
 
   const renderItem = ({ item }: { item: Product }) => (
     <View style={styles.cardContainer} testID={`itemCard-${item.id}`}>
@@ -54,7 +31,7 @@ export default function WishList() {
             onPress={async () => {
               const filtered = items.filter((p) => p.id !== item.id);
               setItems(filtered);
-              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+              await AsyncStorage.setItem(storageKey, JSON.stringify(filtered));
               Toast.success("Item removed");
             }}
           >
